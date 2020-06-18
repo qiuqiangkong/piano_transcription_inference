@@ -45,6 +45,7 @@ def forward(model, x, batch_size):
     pointer = 0
     
     while True:
+        print('Segment {}'.format(pointer))
         if pointer >= len(x):
             break
 

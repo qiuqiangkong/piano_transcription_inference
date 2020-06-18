@@ -8,14 +8,14 @@ import torch
 
 from .utilities import (create_folder, get_filename, RegressionPostProcessor, 
     write_events_to_midi)
-from .models import Regress_onset_offset_frame_velocity_CRNN
+from .models import Regress_onset_offset_frame_velocity_CRNN, Note_pedal
 from .pytorch_utils import move_data_to_device, forward
 from . import config
 
 
 class PianoTranscription(object):
-    def __init__(self, model_type='Regress_onset_offset_frame_velocity_CRNN', 
-        checkpoint_path=None, segment_samples=16000*10, device='cuda'):
+    def __init__(self, model_type='Note_pedal', checkpoint_path=None, 
+        segment_samples=16000*10, device='cuda'):
         """Class for transcribing piano solo recording.
 
         Args:
@@ -25,19 +25,16 @@ class PianoTranscription(object):
           device: 'cuda' | 'cpu'
         """
         if not checkpoint_path:
-            checkpoint_path='{}/piano_transcription_inference_data/Regress_onset_offset_frame_velocity_CRNN_onset_F1=0.9677.pth'.format(str(Path.home()))
+            checkpoint_path='{}/piano_transcription_inference_data/note_F1=0.9677_pedal_F1=0.8658.pth'.format(str(Path.home()))
         print('Checkpoint path: {}'.format(checkpoint_path))
 
         if not os.path.exists(checkpoint_path):
             create_folder(os.path.dirname(checkpoint_path))
             print('Downloading (Please use VPN in mainland of China) ...')
-            print('Total size: 331 MB')
-            os.system('gdown -O "{}" --id 1lTDHkBUbp-69ta0uo6r5kzwEpEIUh-PQ'.format(checkpoint_path))
+            print('Total size: 164 MB')
+            os.system('gdown -O "{}" --id 15to2oXUIJc1345Koyur8aPwUfd0h5SOT'.format(checkpoint_path))
 
-        if device == 'cuda' and torch.cuda.is_available():
-            self.device = 'cuda'
-        else:
-            self.device = 'cpu'
+        print('Using {} for inference.'.format(device))
 
         self.segment_samples = segment_samples
         self.frames_per_second = config.frames_per_second
@@ -45,6 +42,7 @@ class PianoTranscription(object):
         self.onset_threshold = 0.3
         self.offset_threshod = 0.3
         self.frame_threshold = 0.1
+        self.pedal_offset_threshold = 0.2
 
         # Build model
         Model = eval(model_type)
@@ -52,16 +50,15 @@ class PianoTranscription(object):
             classes_num=self.classes_num)
 
         # Load model
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        checkpoint = torch.load(checkpoint_path, map_location=device)
         self.model.load_state_dict(checkpoint['model'], strict=False)
 
         # Parallel
-        print('Using {}'.format(self.device))
         print('GPU number: {}'.format(torch.cuda.device_count()))
-        self.model = torch.nn.DataParallel(self.model)
 
-        if 'cuda' in str(self.device):
-            self.model.to(self.device)
+        if 'cuda' in str(device):
+            self.model = torch.nn.DataParallel(self.model)
+            self.model.to(device)
 
     def transcribe(self, audio, midi_path):
         """Transcribe an audio recording.
@@ -88,7 +85,7 @@ class PianoTranscription(object):
         """(N, segment_samples)"""
 
         # Forward
-        output_dict = forward(self.model, segments, batch_size=12)
+        output_dict = forward(self.model, segments, batch_size=1)
         """{'reg_onset_output': (N, segment_frames, classes_num), ...}"""
 
         # Deframe to original length
@@ -104,19 +101,25 @@ class PianoTranscription(object):
         post_processor = RegressionPostProcessor(self.frames_per_second, 
             classes_num=self.classes_num, onset_threshold=self.onset_threshold, 
             offset_threshold=self.offset_threshod, 
-            frame_threshold=self.frame_threshold)
+            frame_threshold=self.frame_threshold, 
+            pedal_offset_threshold=self.pedal_offset_threshold)
 
         # Post process output_dict to MIDI events
-        est_note_events = post_processor.output_dict_to_midi_events(output_dict)
+        (est_note_events, est_pedal_events) = \
+            post_processor.output_dict_to_midi_events(output_dict)
 
         # Write MIDI events to file
         if midi_path:
-            write_events_to_midi(start_time=0, note_events=est_note_events, midi_path=midi_path)
+            write_events_to_midi(start_time=0, note_events=est_note_events, 
+                pedal_events=est_pedal_events, midi_path=midi_path)
             print('Write out to {}'.format(midi_path))
 
-        transcribed_dict = {'output_dict': output_dict, 'est_note_events': est_note_events}
-        return transcribed_dict
+        transcribed_dict = {
+            'output_dict': output_dict, 
+            'est_note_events': est_note_events,
+            'est_pedal_events': est_pedal_events}
 
+        return transcribed_dict
 
     def enframe(self, x, segment_samples):
         """Enframe long sequence to short segments.

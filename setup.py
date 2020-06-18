@@ -7,7 +7,7 @@ setuptools.setup(
     name="piano-transcription-inference", # Replace with your own username
     version="0.0.1",
     author="Qiuqiang Kong",
-    author_email="qiuqiangkong@gmail.com",
+    author_email="kongqiuqiang@bytedance.com",
     description="Piano transcription inference toolbox",
     long_description=long_description,
     long_description_content_type="text/markdown",

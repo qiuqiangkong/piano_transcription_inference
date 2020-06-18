@@ -11,13 +11,13 @@ $ python3 setup.py install
 
 # Usage
 ```
-python3 example.py --audio_path='examples/cut_liszt.wav' --output_midi_path='cut_liszt.mid' --cuda
+python3 example.py --audio_path='resources/cut_liszt.mp3' --output_midi_path='cut_liszt.mid' --cuda
 ```
 
 For example:
 ```
 # Load audio
-(audio, _) = librosa.core.load('examples/cut_liszt.wav', sr=sample_rate, mono=True)
+(audio, _) = librosa.core.load('resources/cut_liszt.mp3', sr=sample_rate, mono=True)
 
 # Transcriptor
 transcriptor = PianoTranscription(device=device)
