@@ -32,5 +32,15 @@ transcriptor = PianoTranscription(device=device)
 transcribed_dict = transcriptor.transcribe(audio, 'cut_liszt.mid')
 ```
 
+## Visualization of piano transcription
+
+**Demo.** Lang Lang: Franz Liszt - Love Dream (Liebestraum) [[audio]](resources/cut_liszt.mp3) [[transcribed_midi]](resources/cut_liszt.mid)
+
+<img src="resources/cut_liszt.png">
+
+## Applications
+
+We have built a large-scale classical piano MIDI dataset https://github.com/bytedance/GiantMIDI-Piano using our piano transcription system.
+
 ## Cite
 [1] High-resolution Piano Transcription with Pedals by Regressing Onsets and Offsets Times, [To appear], 2020

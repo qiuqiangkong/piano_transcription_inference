@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from torchlibrosa.stft import Spectrogram, LogmelFilterBank
-from pytorch_utils import move_data_to_device
+from .pytorch_utils import move_data_to_device
 
 
 def init_layer(layer):

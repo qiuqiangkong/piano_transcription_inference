@@ -20,6 +20,7 @@ def inference(args):
     audio_path = args.audio_path
     output_midi_path = args.output_midi_path
     device = torch.device('cuda') if args.cuda and torch.cuda.is_available() else torch.device('cpu')
+    # device = 'cuda' if args.cuda and torch.cuda.is_available() else 'cpu'
  
     # Load audio
     (audio, _) = librosa.core.load(audio_path, sr=sample_rate, mono=True)

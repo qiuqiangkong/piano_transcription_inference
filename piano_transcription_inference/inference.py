@@ -15,7 +15,7 @@ from . import config
 
 class PianoTranscription(object):
     def __init__(self, model_type='Note_pedal', checkpoint_path=None, 
-        segment_samples=16000*10, device='cuda'):
+        segment_samples=16000*10, device=torch.device('cuda')):
         """Class for transcribing piano solo recording.
 
         Args:
@@ -24,11 +24,11 @@ class PianoTranscription(object):
           segment_samples: int
           device: 'cuda' | 'cpu'
         """
-        if not checkpoint_path:
-            checkpoint_path='{}/piano_transcription_inference_data/note_F1=0.9677_pedal_F1=0.8658.pth'.format(str(Path.home()))
+        if not checkpoint_path: 
+            checkpoint_path='{}/piano_transcription_inference_data/note_F1=0.9677_pedal_F1=0.9186.pth'.format(str(Path.home()))
         print('Checkpoint path: {}'.format(checkpoint_path))
 
-        if not os.path.exists(checkpoint_path) or os.path.getsize(checkpoint_path) < 1.6e8
+        if not os.path.exists(checkpoint_path) or os.path.getsize(checkpoint_path) < 1.6e8:
             create_folder(os.path.dirname(checkpoint_path))
             print('Total size: ~165 MB')
             zenodo_path = 'https://zenodo.org/record/4034264/files/CRNN_note_F1%3D0.9677_pedal_F1%3D0.9186.pth?download=1'
@@ -54,8 +54,8 @@ class PianoTranscription(object):
         self.model.load_state_dict(checkpoint['model'], strict=False)
 
         # Parallel
-        if 'cuda' in str(self.device):
-            self.model.to(self.device)
+        if 'cuda' in str(device):
+            self.model.to(device)
             print('GPU number: {}'.format(torch.cuda.device_count()))
             self.model = torch.nn.DataParallel(self.model)
         else:

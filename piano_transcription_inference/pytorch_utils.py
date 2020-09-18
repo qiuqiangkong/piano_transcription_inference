@@ -43,9 +43,10 @@ def forward(model, x, batch_size):
     device = next(model.parameters()).device
     
     pointer = 0
+    total_segments = int(np.ceil(len(x) / batch_size))
     
     while True:
-        print('Segment {}'.format(pointer))
+        print('Segment {} / {}'.format(pointer, total_segments))
         if pointer >= len(x):
             break
 
