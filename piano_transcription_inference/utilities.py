@@ -179,6 +179,45 @@ class RegressionPostProcessor(object):
         self.velocity_scale = config.velocity_scale
 
     def output_dict_to_midi_events(self, output_dict):
+        """Main function. Post process model outputs to MIDI events.
+
+        Args:
+          output_dict: {
+            'reg_onset_output': (segment_frames, classes_num), 
+            'reg_offset_output': (segment_frames, classes_num), 
+            'frame_output': (segment_frames, classes_num), 
+            'velocity_output': (segment_frames, classes_num), 
+            'reg_pedal_onset_output': (segment_frames, 1), 
+            'reg_pedal_offset_output': (segment_frames, 1), 
+            'pedal_frame_output': (segment_frames, 1)}
+
+        Outputs:
+          est_note_events: list of dict, e.g. [
+            {'onset_time': 39.74, 'offset_time': 39.87, 'midi_note': 27, 'velocity': 83}, 
+            {'onset_time': 11.98, 'offset_time': 12.11, 'midi_note': 33, 'velocity': 88}]
+
+          est_pedal_events: list of dict, e.g. [
+            {'onset_time': 0.17, 'offset_time': 0.96}, 
+            {'osnet_time': 1.17, 'offset_time': 2.65}]
+        """
+
+        # Post process piano note outputs to piano note and pedal events information
+        (est_on_off_note_vels, est_pedal_on_offs) = \
+            self.output_dict_to_note_pedal_arrays(output_dict)
+        """est_on_off_note_vels: (events_num, 4), the four columns are: [onset_time, offset_time, piano_note, velocity], 
+        est_pedal_on_offs: (pedal_events_num, 2), the two columns are: [onset_time, offset_time]"""
+
+        # Reformat notes to MIDI events
+        est_note_events = self.detected_notes_to_events(est_on_off_note_vels)
+
+        if est_pedal_on_offs is None:
+            est_pedal_events = None
+        else:
+            est_pedal_events = self.detected_pedals_to_events(est_pedal_on_offs)
+
+        return est_note_events, est_pedal_events
+
+    def output_dict_to_note_pedal_arrays(self, output_dict):
         """Postprocess the output probabilities of a transription model to MIDI 
         events.
 
@@ -187,34 +226,47 @@ class RegressionPostProcessor(object):
             'reg_onset_output': (frames_num, classes_num), 
             'reg_offset_output': (frames_num, classes_num), 
             'frame_output': (frames_num, classes_num), 
-            'velocity_output': (frames_num, classes_num)
-          }
+            'velocity_output': (frames_num, classes_num), 
+            ...}
 
         Returns:
-          est_note_events: e.g., [
-            {'midi_note': 34, 'onset_time': 32.837551682293416, 'offset_time': 35.77, 'velocity': 101}, 
-            {'midi_note': 34, 'onset_time': 37.37115609429777, 'offset_time': 39.93, 'velocity': 103}
-            ...]
+          est_on_off_note_vels: (events_num, 4), the 4 columns are onset_time, 
+            offset_time, piano_note and velocity. E.g. [
+             [39.74, 39.87, 27, 0.65], 
+             [11.98, 12.11, 33, 0.69], 
+             ...]
+
+          est_pedal_on_offs: (pedal_events_num, 2), the 2 columns are onset_time 
+            and offset_time. E.g. [
+             [0.17, 0.96], 
+             [1.17, 2.65], 
+             ...]
         """
+
+        # ------ 1. Process regression outputs to binarized outputs ------
+        # For example, onset or offset of [0., 0., 0.15, 0.30, 0.40, 0.35, 0.20, 0.05, 0., 0.]
+        # will be processed to [0., 0., 0., 0., 1., 0., 0., 0., 0., 0.]
 
         # Calculate binarized onset output from regression output
         (onset_output, onset_shift_output) = \
             self.get_binarized_output_from_regression(
                 reg_output=output_dict['reg_onset_output'], 
                 threshold=self.onset_threshold, neighbour=2)
-        output_dict['onset_output'] = onset_output
-        output_dict['onset_shift_output'] = onset_shift_output
+
+        output_dict['onset_output'] = onset_output  # Values are 0 or 1
+        output_dict['onset_shift_output'] = onset_shift_output  
 
         # Calculate binarized offset output from regression output
         (offset_output, offset_shift_output) = \
             self.get_binarized_output_from_regression(
                 reg_output=output_dict['reg_offset_output'], 
                 threshold=self.offset_threshold, neighbour=4)
-        output_dict['offset_output'] = offset_output
+
+        output_dict['offset_output'] = offset_output  # Values are 0 or 1
         output_dict['offset_shift_output'] = offset_shift_output
 
         if 'reg_pedal_onset_output' in output_dict.keys():
-            """Pedal onsets are not used in inference. Instead, pedal framewise 
+            """Pedal onsets are not used in inference. Instead, frame-wise pedal
             predictions are used to detect onsets. We empirically found this is 
             more accurate to detect pedal onsets."""
             pass
@@ -225,29 +277,25 @@ class RegressionPostProcessor(object):
                 self.get_binarized_output_from_regression(
                     reg_output=output_dict['reg_pedal_offset_output'], 
                     threshold=self.pedal_offset_threshold, neighbour=4)
-            output_dict['pedal_offset_output'] = pedal_offset_output
+
+            output_dict['pedal_offset_output'] = pedal_offset_output  # Values are 0 or 1
             output_dict['pedal_offset_shift_output'] = pedal_offset_shift_output
 
+        # ------ 2. Process matrices results to event results ------
         # Detect piano notes from output_dict
         est_on_off_note_vels = self.output_dict_to_detected_notes(output_dict)
-        
-        # Reformat notes to MIDI events
-        est_note_events = self.detected_notes_to_events(est_on_off_note_vels)
 
         if 'reg_pedal_onset_output' in output_dict.keys():
             # Detect piano pedals from output_dict
             est_pedal_on_offs = self.output_dict_to_detected_pedals(output_dict)
-
-            # Reformat pedals to MIDI events
-            est_pedal_events = self.detected_pedals_to_events(est_pedal_on_offs)
  
         else:
-            est_pedal_events = None    
+            est_pedal_on_offs = None    
 
-        return est_note_events, est_pedal_events
+        return est_on_off_note_vels, est_pedal_on_offs
 
     def get_binarized_output_from_regression(self, reg_output, threshold, neighbour):
-        """Calculate binarized output and shifts of onsets / offsets from the
+        """Calculate binarized output and shifts of onsets or offsets from the
         regression results.
 
         Args:
@@ -269,9 +317,9 @@ class RegressionPostProcessor(object):
                 if x[n] > threshold and self.is_monotonic_neighbour(x, n, neighbour):
                     binary_output[n, k] = 1
 
-                    """See Section 3.4 in [1] for deduction.
-                    [1] Q. Kong, et al., High resolution piano transcription by 
-                    regressing onset and offset time stamps, 2020"""
+                    """See Section III-D in [1] for deduction.
+                    [1] Q. Kong, et al., High-resolution Piano Transcription 
+                    with Pedals by Regressing Onsets and Offsets Times, 2020."""
                     if x[n - 1] > x[n + 1]:
                         shift = (x[n + 1] - x[n - 1]) / (x[n] - x[n + 1]) / 2
                     else:

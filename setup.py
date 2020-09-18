@@ -7,7 +7,7 @@ setuptools.setup(
     name="piano-transcription-inference", # Replace with your own username
     version="0.0.1",
     author="Qiuqiang Kong",
-    author_email="kongqiuqiang@bytedance.com",
+    author_email="qiuqiangkong@gmail.com",
     description="Piano transcription inference toolbox",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -18,6 +18,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=['matplotlib', 'mido', 'librosa', 'torchlibrosa', 'gdown'],
+    install_requires=['matplotlib', 'mido', 'librosa', 'torchlibrosa'],
     python_requires='>=3.6',
 )

@@ -28,11 +28,11 @@ class PianoTranscription(object):
             checkpoint_path='{}/piano_transcription_inference_data/note_F1=0.9677_pedal_F1=0.8658.pth'.format(str(Path.home()))
         print('Checkpoint path: {}'.format(checkpoint_path))
 
-        if not os.path.exists(checkpoint_path):
+        if not os.path.exists(checkpoint_path) or os.path.getsize(checkpoint_path) < 1.6e8
             create_folder(os.path.dirname(checkpoint_path))
-            print('Downloading (Please use VPN in mainland of China) ...')
-            print('Total size: 164 MB')
-            os.system('gdown -O "{}" --id 15to2oXUIJc1345Koyur8aPwUfd0h5SOT'.format(checkpoint_path))
+            print('Total size: ~165 MB')
+            zenodo_path = 'https://zenodo.org/record/4034264/files/CRNN_note_F1%3D0.9677_pedal_F1%3D0.9186.pth?download=1'
+            os.system('wget -O "{}" "{}"'.format(checkpoint_path, zenodo_path))
 
         print('Using {} for inference.'.format(device))
 
@@ -54,11 +54,12 @@ class PianoTranscription(object):
         self.model.load_state_dict(checkpoint['model'], strict=False)
 
         # Parallel
-        print('GPU number: {}'.format(torch.cuda.device_count()))
-
-        if 'cuda' in str(device):
+        if 'cuda' in str(self.device):
+            self.model.to(self.device)
+            print('GPU number: {}'.format(torch.cuda.device_count()))
             self.model = torch.nn.DataParallel(self.model)
-            self.model.to(device)
+        else:
+            print('Using CPU.')
 
     def transcribe(self, audio, midi_path):
         """Transcribe an audio recording.

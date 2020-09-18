@@ -4,8 +4,8 @@ import numpy as np
 def note_detection_with_onset_offset_regress(frame_output, onset_output, 
     onset_shift_output, offset_output, offset_shift_output, velocity_output,
     frame_threshold):
-    """Estimate onset and offset, onset shift, offset shift and velocity of 
-    piano notes. First detect onsets with onset outputs, then detect offsets
+    """Process prediction matrices to note events information.
+    First, detect onsets with onset outputs. Then, detect offsets
     with frame and offset outputs.
     
     Args:
@@ -16,11 +16,10 @@ def note_detection_with_onset_offset_regress(frame_output, onset_output,
       offset_shift_output: (frames_num,)
       velocity_output: (frames_num,)
       frame_threshold: float
-
     Returns: 
       output_tuples: list of [bgn, fin, onset_shift, offset_shift, normalized_velocity], 
       e.g., [
-        [1821, 1909, 0.4749851, 0.3048533, 0.72119445], 
+        [1821, 1909, 0.47498, 0.3048533, 0.72119445], 
         [1909, 1947, 0.30730522, -0.45764327, 0.64200014], 
         ...]
     """
@@ -31,8 +30,10 @@ def note_detection_with_onset_offset_regress(frame_output, onset_output,
 
     for i in range(onset_output.shape[0]):
         if onset_output[i] == 1:
+            """Onset detected"""
             if bgn:
-                """Consecutive onsets"""
+                """Consecutive onsets. E.g., pedal is not released, but two 
+                consecutive notes being played."""
                 fin = max(i - 1, 0)
                 output_tuples.append([bgn, fin, onset_shift_output[bgn], 
                     0, velocity_output[bgn]])
@@ -75,14 +76,13 @@ def note_detection_with_onset_offset_regress(frame_output, onset_output,
 
 def pedal_detection_with_onset_offset_regress(frame_output, offset_output, 
     offset_shift_output, frame_threshold):
-    """Estimate onset and offset, onset shift and offset shift of pedals.
+    """Process prediction array to pedal events information.
     
     Args:
       frame_output: (frames_num,)
       offset_output: (frames_num,)
       offset_shift_output: (frames_num,)
       frame_threshold: float
-
     Returns: 
       output_tuples: list of [bgn, fin, onset_shift, offset_shift], 
       e.g., [
@@ -97,6 +97,7 @@ def pedal_detection_with_onset_offset_regress(frame_output, offset_output,
 
     for i in range(1, frame_output.shape[0]):
         if frame_output[i] >= frame_threshold and frame_output[i] > frame_output[i - 1]:
+            """Pedal onset detected"""
             if bgn:
                 pass
             else:
