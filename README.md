@@ -15,12 +15,6 @@ pip install piano_transcription_inference
 
 Then, installation finished! 
 
-Or users could also install from source code:
-
-```
-$ python3 setup.py install
-```
-
 ## Usage
 ```
 python3 example.py --audio_path='resources/cut_liszt.mp3' --output_midi_path='cut_liszt.mid' --cuda
@@ -28,14 +22,13 @@ python3 example.py --audio_path='resources/cut_liszt.mp3' --output_midi_path='cu
 
 For example:
 ```
-import librosa
-from piano_transcription_inference import PianoTranscription, sample_rate
+from piano_transcription_inference import PianoTranscription, sample_rate, load_audio
 
 # Load audio
-(audio, _) = librosa.core.load('resources/cut_liszt.mp3', sr=sample_rate, mono=True)
+(audio, _) = load_audio(audio_path, sr=sample_rate, mono=True)
 
 # Transcriptor
-transcriptor = PianoTranscription(device='cuda')
+transcriptor = PianoTranscription(device='cuda')	# 'cuda' | 'cpu'
 
 # Transcribe and write out to MIDI file
 transcribed_dict = transcriptor.transcribe(audio, 'cut_liszt.mid')

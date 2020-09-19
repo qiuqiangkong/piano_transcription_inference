@@ -1,7 +1,6 @@
 import os
 import argparse
 import torch
-import librosa
 import time
 
 from piano_transcription_inference import PianoTranscription, sample_rate, load_audio
@@ -25,7 +24,7 @@ def inference(args):
     (audio, _) = load_audio(audio_path, sr=sample_rate, mono=True)
 
     # Transcriptor
-    transcriptor = PianoTranscription(device=device)
+    transcriptor = PianoTranscription(device=device)    # 'cuda' | 'cpu'
 
     # Transcribe and write out to MIDI file
     transcribe_time = time.time()
