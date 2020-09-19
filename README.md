@@ -6,7 +6,16 @@ This toolbox is a piano transcription inference package that can be easily insta
 Here is a demo of our piano transcription system: https://www.youtube.com/watch?v=5U-WL0QvKCg
 
 ## Installation
-Install PyTorch (>=1.4) following https://pytorch.org/
+The piano transcription system is developed with Python 3.7 and PyTorch 1.4.0 (Should work with other versions, but not fully tested).
+Install PyTorch (>=1.4) following https://pytorch.org/. Users should have **ffmpeg** installed to transcribe mp3 files.
+
+```
+pip install piano_transcription_inference
+```
+
+Then, installation finished! 
+
+Or users could also install from source code:
 
 ```
 $ python3 setup.py install
@@ -26,7 +35,7 @@ from piano_transcription_inference import PianoTranscription, sample_rate
 (audio, _) = librosa.core.load('resources/cut_liszt.mp3', sr=sample_rate, mono=True)
 
 # Transcriptor
-transcriptor = PianoTranscription(device=device)
+transcriptor = PianoTranscription(device='cuda')
 
 # Transcribe and write out to MIDI file
 transcribed_dict = transcriptor.transcribe(audio, 'cut_liszt.mid')
@@ -37,6 +46,9 @@ transcribed_dict = transcriptor.transcribe(audio, 'cut_liszt.mid')
 **Demo.** Lang Lang: Franz Liszt - Love Dream (Liebestraum) [[audio]](resources/cut_liszt.mp3) [[transcribed_midi]](resources/cut_liszt.mid)
 
 <img src="resources/cut_liszt.png">
+
+## FAQs
+If users met the problem of command line shows "Killed". This can be caused by users do not have sufficient memory.
 
 ## Applications
 
