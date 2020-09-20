@@ -20,7 +20,9 @@ Installation is finished!
 python3 example.py --audio_path='resources/cut_liszt.mp3' --output_midi_path='cut_liszt.mid' --cuda
 ```
 
-For example:
+This will download the pretrained model from https://zenodo.org/record/4034264. 
+
+Users could also execute the inference code line by line:
 ```
 from piano_transcription_inference import PianoTranscription, sample_rate, load_audio
 
@@ -41,7 +43,11 @@ transcribed_dict = transcriptor.transcribe(audio, 'cut_liszt.mid')
 <img src="resources/cut_liszt.png">
 
 ## FAQs
-If users met the problem of command line shows "Killed". This can be caused by users do not have sufficient memory.
+This repo support Linux and Mac. Windows has not been tested.
+
+If users met "audio.exceptions.NoBackendError", then check if ffmpeg is installed.
+
+If users met the problem of "Killed". This is caused by there are not sufficient memory.
 
 ## Applications
 
