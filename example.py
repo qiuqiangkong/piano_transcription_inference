@@ -24,7 +24,10 @@ def inference(args):
     (audio, _) = load_audio(audio_path, sr=sample_rate, mono=True)
 
     # Transcriptor
-    transcriptor = PianoTranscription(device=device)    # 'cuda' | 'cpu'
+    transcriptor = PianoTranscription(device=device, checkpoint_path=None)
+    """device: 'cuda' | 'cpu'
+    checkpoint_path: None for default path, or str for downloaded checkpoint path.
+    """
 
     # Transcribe and write out to MIDI file
     transcribe_time = time.time()

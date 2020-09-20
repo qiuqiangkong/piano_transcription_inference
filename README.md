@@ -30,7 +30,7 @@ from piano_transcription_inference import PianoTranscription, sample_rate, load_
 (audio, _) = load_audio(audio_path, sr=sample_rate, mono=True)
 
 # Transcriptor
-transcriptor = PianoTranscription(device='cuda')	# 'cuda' | 'cpu'
+transcriptor = PianoTranscription(device='cuda', checkpoint_path=None)  # device: 'cuda' | 'cpu'
 
 # Transcribe and write out to MIDI file
 transcribed_dict = transcriptor.transcribe(audio, 'cut_liszt.mid')
