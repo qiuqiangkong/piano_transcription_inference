@@ -16,6 +16,8 @@ pip install piano_transcription_inference
 Installation is finished! 
 
 ## Usage
+Want to try it out but don't want to install anything? We have set up a [Google Colab](https://colab.research.google.com/github/qiuqiangkong/piano_transcription_inference/blob/master/resources/inference.ipynb).
+
 ```
 python3 example.py --audio_path='resources/cut_liszt.mp3' --output_midi_path='cut_liszt.mid' --cuda
 ```
