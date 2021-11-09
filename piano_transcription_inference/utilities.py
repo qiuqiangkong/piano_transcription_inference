@@ -394,16 +394,20 @@ class RegressionPostProcessor(object):
 
         est_midi_notes = np.array(est_midi_notes) # (notes,)
 
-        onset_times = (est_tuples[:, 0] + est_tuples[:, 2]) / self.frames_per_second
-        offset_times = (est_tuples[:, 1] + est_tuples[:, 3]) / self.frames_per_second
-        velocities = est_tuples[:, 4]
-        
-        est_on_off_note_vels = np.stack((onset_times, offset_times, est_midi_notes, velocities), axis=-1)
-        """(notes, 3), the three columns are onset_times, offset_times and velocity."""
+        if len(est_tuples) == 0:
+            return np.array([])
 
-        est_on_off_note_vels = est_on_off_note_vels.astype(np.float32)
+        else:
+            onset_times = (est_tuples[:, 0] + est_tuples[:, 2]) / self.frames_per_second
+            offset_times = (est_tuples[:, 1] + est_tuples[:, 3]) / self.frames_per_second
+            velocities = est_tuples[:, 4]
+            
+            est_on_off_note_vels = np.stack((onset_times, offset_times, est_midi_notes, velocities), axis=-1)
+            """(notes, 3), the three columns are onset_times, offset_times and velocity."""
 
-        return est_on_off_note_vels
+            est_on_off_note_vels = est_on_off_note_vels.astype(np.float32)
+
+            return est_on_off_note_vels
 
     def output_dict_to_detected_pedals(self, output_dict):
         """Postprocess output_dict to piano pedals.
