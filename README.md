@@ -9,7 +9,7 @@ Here is a demo of our piano transcription system: https://www.youtube.com/watch?
 The piano transcription system is developed with Python 3.7 and PyTorch 1.4.0 (Should work with other versions, but not fully tested).
 Install PyTorch following https://pytorch.org/. Users should have **ffmpeg** installed to transcribe mp3 files.
 
-```
+```bash
 pip install piano_transcription_inference
 ```
 
@@ -18,18 +18,20 @@ Installation is finished!
 ## Usage
 Want to try it out but don't want to install anything? We have set up a [Google Colab](https://colab.research.google.com/github/qiuqiangkong/piano_transcription_inference/blob/master/resources/inference.ipynb).
 
-```
+```python
 python3 example.py --audio_path='resources/cut_liszt.mp3' --output_midi_path='cut_liszt.mid' --cuda
 ```
 
 This will download the pretrained model from https://zenodo.org/record/4034264. 
 
 Users could also execute the inference code line by line:
-```
-from piano_transcription_inference import PianoTranscription, sample_rate, load_audio
+
+```python
+import librosa
+from piano_transcription_inference import PianoTranscription, sample_rate
 
 # Load audio
-(audio, _) = load_audio(audio_path, sr=sample_rate, mono=True)
+audio, _ = librosa.load(path=audio_path, sr=sample_rate, mono=True)
 
 # Transcriptor
 transcriptor = PianoTranscription(device='cuda', checkpoint_path=None)  # device: 'cuda' | 'cpu'

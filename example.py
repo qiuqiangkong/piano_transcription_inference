@@ -3,7 +3,8 @@ import argparse
 import torch
 import time
 
-from piano_transcription_inference import PianoTranscription, sample_rate, load_audio
+import librosa
+from piano_transcription_inference import PianoTranscription, sample_rate
 
 
 def inference(args):
@@ -21,7 +22,7 @@ def inference(args):
     device = 'cuda' if args.cuda and torch.cuda.is_available() else 'cpu'
  
     # Load audio
-    (audio, _) = load_audio(audio_path, sr=sample_rate, mono=True)
+    audio, _ = librosa.load(path=audio_path, sr=sample_rate, mono=True)
 
     # Transcriptor
     transcriptor = PianoTranscription(device=device, checkpoint_path=None)
