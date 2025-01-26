@@ -144,7 +144,7 @@ class AcousticModelCRnn8Dropout(nn.Module):
 
         x = x.transpose(1, 2).flatten(2)
         x = F.relu(self.bn5(self.fc5(x).transpose(1, 2)).transpose(1, 2))
-        x = F.dropout(x, p=0.5, training=self.training, inplace=True)
+        x = F.dropout(x, p=0.5, training=self.training, inplace=False)
         
         (x, _) = self.gru(x)
         x = F.dropout(x, p=0.5, training=self.training, inplace=False)
