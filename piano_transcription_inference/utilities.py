@@ -520,7 +520,7 @@ def load_audio(path, sr=22050, mono=True, offset=0.0, duration=None,
         n = 0
 
         for frame in input_file:
-            frame = librosa.core.audio.util.buf_to_float(frame, dtype=dtype)
+            frame = frame = librosa.util.buf_to_float(frame, n_bytes=2, dtype=dtype)
             n_prev = n
             n = n + len(frame)
 
@@ -550,10 +550,10 @@ def load_audio(path, sr=22050, mono=True, offset=0.0, duration=None,
         if n_channels > 1:
             y = y.reshape((-1, n_channels)).T
             if mono:
-                y = librosa.core.audio.to_mono(y)
+                y = librosa.to_mono(y)
 
         if sr is not None:
-            y = librosa.core.audio.resample(y, sr_native, sr, res_type=res_type)
+            y = librosa.resample(y, orig_sr=sr_native, target_sr=sr, res_type=res_type)
 
         else:
             sr = sr_native
